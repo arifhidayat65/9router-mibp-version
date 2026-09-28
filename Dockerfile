@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # Pinned by digest so a base-image refresh cannot silently bump npm and break
 # `npm ci` against the committed lockfile (see v1.0.9 npm ci EUSAGE failure).
 # DO NOT unpin. This image ships npm 10.9.8 — the lockfile MUST be regenerated
@@ -29,8 +28,7 @@ COPY package.json package-lock.json ./
 # npm 11+ (drops the top-level @emnapi entries npm 10 requires). Without this,
 # `npm ci` still fails but with a cryptic "Missing: @emnapi/..." EUSAGE error.
 RUN node -e "const l=require('./package-lock.json');const p=l.packages||{};const miss=['node_modules/@emnapi/core','node_modules/@emnapi/runtime'].filter(k=>!p[k]);if(miss.length){console.error('LOCKFILE NOT npm-10-COMPATIBLE — missing: '+miss.join(', '));console.error('Regenerate with: npx -y npm@10.9.8 install --package-lock-only');console.error('See AGENTS.md §1.');process.exit(1)}"
-RUN --mount=type=cache,target=/root/.npm \
-  npm ci \
+RUN npm ci \
     --registry="${NPM_REGISTRY}" \
     --fetch-retries=5 \
     --fetch-retry-factor=2 \
